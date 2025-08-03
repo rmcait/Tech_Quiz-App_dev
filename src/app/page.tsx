@@ -68,14 +68,17 @@ export default function HomePage() {
                 
                 <div className="bg-white shadow rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    設定
+                    ビジネス技術クイズ
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    アカウント設定を変更できます
+                    技術・ビジネスに関する10問のクイズに挑戦できます
                   </p>
-                  <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                    設定を開く
-                  </button>
+                  <a
+                    href="/quiz"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                  >
+                    クイズに挑戦
+                  </a>
                 </div>
               </div>
             </div>
