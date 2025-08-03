@@ -32,9 +32,11 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
   const [showDetails, setShowDetails] = useState(false);
 
   const isPerfect = result.score === 100;
-  const isExcellent = result.score >= 80;
-  const isGood = result.score >= 60;
-  const isPassing = result.score >= 50;
+  const isExcellent = result.score >= 80 && result.score < 100;
+  const isGood = result.score >= 70 && result.score < 80;
+  const isPassing = result.score >= 50 && result.score < 70;
+  const isPoor = result.score >= 30 && result.score < 50;
+  const isVeryPoor = result.score < 30;
 
   useEffect(() => {
     // アニメーションの順序を制御
@@ -54,7 +56,8 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
     if (isExcellent) return "素晴らしい成績です！🌟";
     if (isGood) return "良い成績です！👍";
     if (isPassing) return "合格です！✅";
-    return "もう一度頑張りましょう！💪";
+    if (isPoor) return "もう少し頑張りましょう！💪";
+    return "基礎から復習しましょう！📚";
   };
 
   const getScoreColor = () => {
@@ -62,7 +65,205 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
     if (isExcellent) return "from-green-400 to-blue-500";
     if (isGood) return "from-blue-400 to-purple-500";
     if (isPassing) return "from-green-400 to-teal-500";
+    if (isPoor) return "from-orange-400 to-red-500";
     return "from-red-400 to-pink-500";
+  };
+
+  const getScoreEmoji = () => {
+    if (isPerfect) return "🏆";
+    if (isExcellent) return "🌟";
+    if (isGood) return "👍";
+    if (isPassing) return "✅";
+    if (isPoor) return "💪";
+    return "📚";
+  };
+
+  // 30%以下: 落ち葉と風の演出
+  const renderFallingLeaves = () => (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: Math.random() * window.innerWidth,
+            y: -50,
+            rotate: 0,
+            opacity: 1
+          }}
+          animate={{ 
+            x: Math.random() * window.innerWidth,
+            y: window.innerHeight + 50,
+            rotate: 360,
+            opacity: 0
+          }}
+          transition={{ 
+            duration: Math.random() * 4 + 3,
+            repeat: Infinity,
+            delay: Math.random() * 3
+          }}
+          className="absolute w-4 h-4"
+          style={{
+            backgroundColor: ['#8B4513', '#A0522D', '#CD853F', '#D2691E'][Math.floor(Math.random() * 4)],
+            borderRadius: '50% 0 50% 0',
+            transform: 'rotate(45deg)'
+          }}
+        />
+      ))}
+    </div>
+  );
+
+  // 50%以下: 雨の演出
+  const renderRain = () => (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {[...Array(40)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: Math.random() * window.innerWidth,
+            y: -20,
+            opacity: 1
+          }}
+          animate={{ 
+            y: window.innerHeight + 20,
+            opacity: 0
+          }}
+          transition={{ 
+            duration: Math.random() * 1 + 0.5,
+            repeat: Infinity,
+            delay: Math.random() * 1
+          }}
+          className="absolute w-0.5 h-8 bg-blue-400 opacity-60"
+        />
+      ))}
+    </div>
+  );
+
+  // 70%以下: 雪の演出
+  const renderSnow = () => (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {[...Array(30)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: Math.random() * window.innerWidth,
+            y: -20,
+            rotate: 0,
+            opacity: 1
+          }}
+          animate={{ 
+            x: Math.random() * window.innerWidth,
+            y: window.innerHeight + 20,
+            rotate: 360,
+            opacity: 0
+          }}
+          transition={{ 
+            duration: Math.random() * 3 + 2,
+            repeat: Infinity,
+            delay: Math.random() * 2
+          }}
+          className="absolute w-2 h-2 bg-white rounded-full opacity-80"
+        />
+      ))}
+    </div>
+  );
+
+  // 80-90%: 星の演出
+  const renderStars = () => (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {[...Array(25)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: Math.random() * window.innerWidth,
+            y: -20,
+            scale: 0,
+            opacity: 0
+          }}
+          animate={{ 
+            y: window.innerHeight + 20,
+            scale: [0, 1, 0],
+            opacity: [0, 1, 0]
+          }}
+          transition={{ 
+            duration: Math.random() * 2 + 1.5,
+            repeat: Infinity,
+            delay: Math.random() * 1.5
+          }}
+          className="absolute w-3 h-3"
+          style={{
+            backgroundColor: ['#FFD700', '#FFA500', '#FF69B4', '#87CEEB'][Math.floor(Math.random() * 4)],
+            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+          }}
+        />
+      ))}
+    </div>
+  );
+
+  // 100%: 豪華な紙吹雪と花火
+  const renderConfetti = () => (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {[...Array(50)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: Math.random() * window.innerWidth,
+            y: -20,
+            rotate: 0,
+            opacity: 1
+          }}
+          animate={{ 
+            y: window.innerHeight + 20,
+            rotate: 360,
+            opacity: 0
+          }}
+          transition={{ 
+            duration: Math.random() * 3 + 2,
+            repeat: Infinity,
+            delay: Math.random() * 2
+          }}
+          className="absolute w-2 h-2"
+          style={{
+            backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'][Math.floor(Math.random() * 8)],
+            borderRadius: Math.random() > 0.5 ? '50%' : '0%'
+          }}
+        />
+      ))}
+      {/* 花火エフェクト */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={`firework-${i}`}
+          initial={{ 
+            x: Math.random() * window.innerWidth,
+            y: window.innerHeight,
+            scale: 0,
+            opacity: 0
+          }}
+          animate={{ 
+            y: window.innerHeight * 0.3,
+            scale: [0, 1, 0],
+            opacity: [0, 1, 0]
+          }}
+          transition={{ 
+            duration: 2,
+            repeat: Infinity,
+            delay: i * 0.5
+          }}
+          className="absolute w-4 h-4"
+          style={{
+            background: `radial-gradient(circle, ${['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'][Math.floor(Math.random() * 5)]} 0%, transparent 70%)`
+          }}
+        />
+      ))}
+    </div>
+  );
+
+  const renderAnimation = () => {
+    if (isPerfect) return renderConfetti();
+    if (isExcellent) return renderStars();
+    if (isGood) return renderSnow();
+    if (isPassing) return renderRain();
+    if (isPoor) return renderFallingLeaves();
+    return renderFallingLeaves();
   };
 
   return (
@@ -116,6 +317,15 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
                     {Math.round(result.score)}%
                   </motion.div>
                   
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="text-6xl mb-4"
+                  >
+                    {getScoreEmoji()}
+                  </motion.div>
+                  
                   <motion.h1
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -139,38 +349,9 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
           )}
         </AnimatePresence>
 
-        {/* 紙吹雪エフェクト */}
+        {/* スコア別アニメーション */}
         <AnimatePresence>
-          {showConfetti && (
-            <div className="fixed inset-0 pointer-events-none z-10">
-              {[...Array(50)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ 
-                    x: Math.random() * window.innerWidth,
-                    y: -20,
-                    rotate: 0,
-                    opacity: 1
-                  }}
-                  animate={{ 
-                    y: window.innerHeight + 20,
-                    rotate: 360,
-                    opacity: 0
-                  }}
-                  transition={{ 
-                    duration: Math.random() * 3 + 2,
-                    repeat: Infinity,
-                    delay: Math.random() * 2
-                  }}
-                  className="absolute w-2 h-2"
-                  style={{
-                    backgroundColor: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'][Math.floor(Math.random() * 5)],
-                    borderRadius: Math.random() > 0.5 ? '50%' : '0%'
-                  }}
-                />
-              ))}
-            </div>
-          )}
+          {showConfetti && renderAnimation()}
         </AnimatePresence>
 
         {/* 詳細結果 */}
@@ -254,6 +435,9 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
                             {isCorrect ? "✅" : "❌"}
                           </span>
                         </div>
+                        <p className="text-sm text-gray-400 mt-1">
+                          {question.question.substring(0, 10)}...
+                        </p>
                       </motion.div>
                     );
                   })}

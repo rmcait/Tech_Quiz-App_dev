@@ -68,16 +68,16 @@ export default function HomePage() {
                 
                 <div className="bg-white shadow rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    ビジネス技術クイズ
+                    ユーザーダッシュボード
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    技術・ビジネスに関する10問のクイズに挑戦できます
+                    学習進捗とクイズにアクセスできます
                   </p>
                   <a
-                    href="/quiz"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                    href="/dashboard"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
                   >
-                    クイズに挑戦
+                    ダッシュボードへ
                   </a>
                 </div>
               </div>
