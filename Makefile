@@ -18,3 +18,6 @@ migrate:
 
 app:
 	docker-compose exec nextjs npm run dev
+
+shell:
+	docker-compose exec nextjs sh
