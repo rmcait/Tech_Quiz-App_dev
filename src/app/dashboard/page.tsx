@@ -17,14 +17,21 @@ export default function DashboardPage() {
     );
   }
 
-  if (!session) {
-    redirect("/auth/login");
-  }
+  // モック認証：セッションがない場合はモックユーザーを使用
+  const mockUser = {
+    name: "モックユーザー",
+    email: "mock@example.com",
+    image: null,
+    role: "STAFF",
+    isAlphaOmega: false
+  };
+
+  const user = session?.user || mockUser;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <UserDashboardClient user={session.user} />
+      <UserDashboardClient user={user} />
     </div>
   );
 } 

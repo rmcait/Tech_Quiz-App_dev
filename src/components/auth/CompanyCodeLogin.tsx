@@ -23,6 +23,10 @@ export function CompanyCodeLogin() {
   const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState("");
   const [showGoogleLogin, setShowGoogleLogin] = useState(false);
+  const [buttonState, setButtonState] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showMovingCheckmark, setShowMovingCheckmark] = useState(false);
+  const [hideButton, setHideButton] = useState(false);
 
   const validateCompanyCode = async () => {
     if (!companyCode.trim()) {
@@ -30,20 +34,43 @@ export function CompanyCodeLogin() {
       return;
     }
 
+    setButtonState('loading');
     setIsValidating(true);
     setError("");
 
     // 実際の実装ではAPIエンドポイントでバリデーション
     // ここでは模擬的な遅延を追加
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     const isValidCode = VALID_COMPANY_CODES.includes(companyCode.toUpperCase());
     
     if (isValidCode) {
-      setIsValid(true);
+      setButtonState('success');
+      setShowSuccessMessage(true);
+      setIsValid(false); // 初期状態ではチェックマークを非表示
       setShowGoogleLogin(true);
       setError("");
+      
+      // 1秒後にメッセージをフェードアウト
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        setShowMovingCheckmark(true);
+      }, 1000);
+      
+      // 移動完了後にボタンを非表示にする
+      setTimeout(() => {
+        setHideButton(true);
+      }, 2500); // 1000ms (メッセージフェードアウト) + 200ms (遅延) + 1000ms (移動時間) + 300ms (待機時間)
+      
+      // ボタンがフェードアウトした後にチェックマークを表示する
+      setTimeout(() => {
+        setIsValid(true);
+      }, 3000); // 2500ms (ボタンフェードアウト) + 500ms (遅延)
     } else {
+      setButtonState('idle');
+      setShowSuccessMessage(false);
+      setShowMovingCheckmark(false);
+      setHideButton(false);
       setError("無効な企業コードです。正しいコードを入力してください。");
       setIsValid(false);
       setShowGoogleLogin(false);
@@ -76,7 +103,7 @@ export function CompanyCodeLogin() {
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
+      transition: { duration: 0.6, ease: "easeOut" as const }
     }
   };
 
@@ -133,7 +160,11 @@ export function CompanyCodeLogin() {
                   value={companyCode}
                   onChange={(e) => {
                     setCompanyCode(e.target.value);
-                    if (isValid) {
+                    if (buttonState !== 'idle') {
+                      setButtonState('idle');
+                      setShowSuccessMessage(false);
+                      setShowMovingCheckmark(false);
+                      setHideButton(false);
                       setIsValid(false);
                       setShowGoogleLogin(false);
                     }
@@ -156,7 +187,21 @@ export function CompanyCodeLogin() {
                     animate={{ scale: 1 }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   >
-                    <span className="text-green-500 text-xl">✅</span>
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
                   </motion.div>
                 )}
               </motion.div>
@@ -174,30 +219,126 @@ export function CompanyCodeLogin() {
             )}
 
             {/* Validation Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={validateCompanyCode}
-              disabled={isValidating || !companyCode.trim()}
-              className={`w-full py-3 px-4 border border-transparent rounded-xl font-medium transition-all duration-200 ${
-                isValidating || !companyCode.trim()
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
+            <motion.div
+              animate={{ 
+                opacity: hideButton ? 0 : 1,
+                height: hideButton ? 0 : "auto",
+                marginBottom: hideButton ? 0 : "1rem"
+              }}
+              transition={{ 
+                duration: 0.5,
+                ease: "easeInOut"
+              }}
+              className="relative overflow-visible"
             >
-              {isValidating ? (
-                <div className="flex items-center justify-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
-                  />
-                  認証中...
-                </div>
-              ) : (
-                "企業コードを認証"
-              )}
-            </motion.button>
+              <motion.button
+                whileHover={{ scale: buttonState === 'idle' ? 1.02 : 1 }}
+                whileTap={{ scale: buttonState === 'idle' ? 0.98 : 1 }}
+                onClick={validateCompanyCode}
+                disabled={isValidating || !companyCode.trim()}
+                className={`w-full py-3 px-4 border border-transparent rounded-xl font-medium transition-all duration-300 ${
+                  buttonState === 'success'
+                    ? "bg-green-500 text-white"
+                    : isValidating || !companyCode.trim()
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                <AnimatePresence mode="wait">
+                  {buttonState === 'loading' && (
+                    <motion.div
+                      key="loading"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="flex items-center justify-center"
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
+                      />
+                      認証中...
+                    </motion.div>
+                  )}
+                  
+                  {buttonState === 'success' && (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-center justify-center relative"
+                    >
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ 
+                          scale: 1,
+                          x: showMovingCheckmark ? "180px" : 0,
+                          rotate: showMovingCheckmark ? 1440 : 0
+                        }}
+                        transition={{ 
+                          type: showMovingCheckmark ? "tween" : "spring",
+                          stiffness: showMovingCheckmark ? undefined : 500,
+                          damping: showMovingCheckmark ? undefined : 30,
+                          delay: showMovingCheckmark ? 0 : 0.2,
+                          duration: showMovingCheckmark ? 1.0 : 0.3,
+                          ease: showMovingCheckmark ? "easeInOut" : undefined
+                        }}
+                        className={`w-6 h-6 bg-white rounded-full flex items-center justify-center mr-2 ${
+                          showMovingCheckmark ? 'border-2 border-green-500' : ''
+                        }`}
+                      >
+                        <motion.svg
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ 
+                            duration: 0.5, 
+                            delay: 0.4,
+                            ease: "easeInOut"
+                          }}
+                          className="w-4 h-4 text-green-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </motion.svg>
+                      </motion.div>
+                      
+                      <motion.span
+                        animate={{ 
+                          opacity: showSuccessMessage ? 1 : 0
+                        }}
+                        transition={{ 
+                          duration: 0.3
+                        }}
+                        className="ml-2"
+                      >
+                        認証完了
+                      </motion.span>
+                    </motion.div>
+                  )}
+                  
+                  {buttonState === 'idle' && (
+                    <motion.span
+                      key="idle"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      企業コードを認証
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </motion.div>
           </div>
 
           {/* Google Sign In Button */}
