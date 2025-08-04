@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useState, useCallback } from "react";
+import { CorporateStoryView } from "@/components/quiz/CorporateStoryView";
 
 interface User {
   name?: string | null;
@@ -17,13 +19,77 @@ interface UserDashboardClientProps {
 
 export function UserDashboardClient({ user }: UserDashboardClientProps) {
   const isAlphaOmega = user.isAlphaOmega;
+  const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
+
+  // 企業ストーリーデータ
+  const corporateStories = [
+    {
+      id: "shops-1",
+      company: "shops",
+      logo: "m",
+      banner: "shops-banner",
+      title: "Shops 新商品クイズ",
+      description: "最新の商品知識をテストして、ショッピングの達人になろう！",
+      quizType: "新商品クイズ",
+      timePosted: "2時間前",
+      isNew: true
+    },
+    {
+      id: "rakuten-1",
+      company: "rakuten",
+      logo: "R",
+      banner: "rakuten-banner",
+      title: "Rakuten ポイントクイズ",
+      description: "楽天ポイントの使い方とお得な情報を学ぼう！",
+      quizType: "ポイントクイズ",
+      timePosted: "4時間前"
+    },
+    {
+      id: "amazon-1",
+      company: "amazon",
+      logo: "a",
+      banner: "amazon-banner",
+      title: "Amazon ECクイズ",
+      description: "Eコマースの基礎知識とAmazonのサービスを理解しよう！",
+      quizType: "ECクイズ",
+      timePosted: "6時間前"
+    },
+    {
+      id: "ca-1",
+      company: "ca_tech",
+      logo: "CA",
+      banner: "ca-banner",
+      title: "CA テッククイズ",
+      description: "最新のテクノロジートレンドと技術知識をテスト！",
+      quizType: "テッククイズ",
+      timePosted: "1時間前",
+      isLive: true
+    }
+  ];
+
+  const handleStoryClick = (story: any) => {
+    setSelectedStory(story);
+    setIsStoryOpen(true);
+  };
+
+  const handleCloseStory = useCallback(() => {
+    setIsStoryOpen(false);
+    setSelectedStory(null);
+  }, []);
+
+  const handleStartQuiz = useCallback((storyId: string) => {
+    console.log(`Starting quiz for story: ${storyId}`);
+    // ここでクイズページに遷移する処理を追加
+    handleCloseStory();
+  }, [handleCloseStory]);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { duration: 0.4, ease: "easeOut" }
+      transition: { duration: 0.4, ease: "easeOut" as const }
     }
   };
 
@@ -44,6 +110,24 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
     { title: "学習時間", value: "2.5時間", icon: "⏱️", color: "bg-purple-500" },
     { title: "獲得ポイント", value: "1,250", icon: "🏆", color: "bg-yellow-500" },
   ];
+
+  // 連続解答日数と皆勤ボーナスデータ
+  const streakData = {
+    currentStreak: 7,
+    longestStreak: 15,
+    totalDays: 25,
+    bonusPoints: 500,
+    nextBonus: 1000,
+    daysToNextBonus: 3,
+    weeklyProgress: 5 // 今週完了した日数（月〜金の5日間）
+  };
+
+  // デバッグ用: 週間プログレスの値を確認
+  console.log('Weekly Progress Debug:', {
+    currentStreak: streakData.currentStreak,
+    weeklyProgress: streakData.weeklyProgress,
+    calculation: streakData.currentStreak % 7
+  });
 
   const recentActivities = [
     { action: "ビジネス技術クイズを完了", score: "90%", time: "2時間前", icon: "✅" },
@@ -94,75 +178,325 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
         animate="visible"
         className="space-y-8"
       >
-        {/* Welcome Section */}
+
+
+        {/* Compact & Readable Streak & Bonus Section */}
         <motion.div 
           variants={cardVariants}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8 shadow-xl"
+          className="bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 rounded-2xl p-5 shadow-xl border border-orange-300"
         >
-          <div className="flex items-center space-x-6">
-            {user.image && (
+          {/* Main Content Row */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Left: Streak Info with Better Typography */}
+            <div className="flex items-center space-x-4">
               <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 200, 
+                  damping: 10,
+                  delay: 0.2
+                }}
+                className="w-12 h-12 bg-white bg-opacity-25 rounded-full flex items-center justify-center shadow-lg"
               >
-                <img
-                  src={user.image}
-                  alt={user.name || 'User'}
-                  className="w-full h-full object-cover"
-                />
+                <span className="text-xl">🔥</span>
               </motion.div>
-            )}
-            <div className="flex-1">
-              <motion.h1 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-3xl font-bold mb-2"
-              >
-                ようこそ、{user.name}さん！
-              </motion.h1>
-              <motion.p 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-                className="text-blue-100 text-lg"
-              >
-                今日も学習を続けて、スキルを向上させましょう
-              </motion.p>
-              {isAlphaOmega && (
+              <div className="space-y-1">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.7 }}
-                  className="mt-3 inline-flex items-center px-3 py-1 bg-yellow-400 bg-opacity-20 rounded-full text-sm"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-2xl font-bold text-white drop-shadow-sm"
                 >
-                  <span className="mr-2">🌟</span>
-                  <span>AlphaOmega特別権限</span>
+                  {streakData.currentStreak}日連続
                 </motion.div>
-              )}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="text-orange-100 text-sm font-medium"
+                >
+                  最高記録: {streakData.longestStreak}日
+                </motion.div>
+              </div>
             </div>
+            
+            {/* Right: Bonus Points with Enhanced Visibility */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-center"
+            >
+              <div className="bg-white bg-opacity-25 backdrop-blur-sm rounded-xl px-4 py-3 shadow-lg border border-white border-opacity-30">
+                <div className="text-lg font-bold text-white drop-shadow-sm">+{streakData.bonusPoints}</div>
+                <div className="text-orange-100 text-sm font-medium">ボーナス</div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Weekly Progress with Better Spacing */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="mb-4"
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-white text-sm font-medium">今週の進捗:</span>
+              <div className="flex space-x-2">
+                {['月', '火', '水', '木', '金', '土', '日'].map((day, index) => (
+                  <motion.div
+                    key={day}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 1.2 + index * 0.05 }}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
+                      index < streakData.weeklyProgress 
+                        ? 'bg-white text-red-600 shadow-lg drop-shadow-sm font-black' 
+                        : 'bg-white bg-opacity-20 text-white border border-white border-opacity-30'
+                    }`}
+                  >
+                    {index < streakData.weeklyProgress ? '✓' : day}
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Progress Bar with Better Visibility */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.4 }}
+            className="mb-4"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-white text-sm font-medium">次のボーナスまで</span>
+              <span className="text-white text-sm font-bold">{streakData.daysToNextBonus}/10日</span>
+            </div>
+            <div className="w-full bg-white bg-opacity-20 rounded-full h-3 shadow-inner">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${((10 - streakData.daysToNextBonus) / 10) * 100}%` }}
+                transition={{ duration: 1.5, delay: 1.6 }}
+                className="bg-gradient-to-r from-yellow-300 to-orange-400 h-3 rounded-full shadow-sm"
+              />
+            </div>
+            <div className="text-center mt-2">
+              <p className="text-orange-100 text-sm font-medium">
+                あと{streakData.daysToNextBonus}日で{streakData.nextBonus}ポイント獲得！
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Enhanced Action Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.8 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-white text-orange-500 py-3 rounded-xl font-bold text-base shadow-lg hover:bg-orange-50 hover:shadow-xl transition-all duration-200 border-2 border-white border-opacity-30"
+          >
+            今日も学習する
+          </motion.button>
+        </motion.div>
+
+        {/* Corporate Event Quizzes - Authentic Instagram Stories Style */}
+        <motion.div 
+          variants={cardVariants}
+          className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">🏢 企業イベントクイズ</h2>
+            <span className="text-sm text-gray-500">パートナー企業からの特別クイズ</span>
+          </div>
+          
+          <div className="flex space-x-4 overflow-x-auto pb-4">
+            {/* Your Story */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-shrink-0 cursor-pointer group"
+            >
+              <div className="relative">
+                {/* Story Ring - Orange to Purple Gradient */}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-purple-500 p-0.5 mb-2">
+                  <div className="w-full h-full rounded-full bg-white p-1">
+                    <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <span className="text-gray-600 text-lg">👤</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-gray-900">Your Story</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Shops Story */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-shrink-0 cursor-pointer group"
+              onClick={() => handleStoryClick(corporateStories[0])}
+            >
+              <div className="relative">
+                {/* Story Ring - Orange to Purple Gradient */}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-purple-500 p-0.5 mb-2">
+                  <div className="w-full h-full rounded-full bg-white p-1">
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center relative">
+                      {/* Red Cube with 'm' */}
+                      <div className="w-6 h-6 bg-red-600 rounded-sm transform rotate-12 relative">
+                        <div className="absolute inset-0 bg-red-500 rounded-sm"></div>
+                        <div className="absolute inset-0 bg-red-400 rounded-sm transform translate-x-0.5 -translate-y-0.5"></div>
+                        <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-xs">m</span>
+                      </div>
+                      {/* Blue Circle */}
+                      <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-cyan-400 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-gray-900">shops</p>
+                </div>
+                {/* New Badge */}
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-6 h-3 bg-pink-500 rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">NEW</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Rakuten Story */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-shrink-0 cursor-pointer group"
+              onClick={() => handleStoryClick(corporateStories[1])}
+            >
+              <div className="relative">
+                {/* Story Ring - Purple Gradient */}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 p-0.5 mb-2">
+                  <div className="w-full h-full rounded-full bg-white p-1">
+                    <div className="w-full h-full rounded-full bg-red-600 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-white font-bold text-xs">Rakuten</div>
+                        <div className="w-6 h-0.5 bg-white rounded-full mt-1 transform rotate-12"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-gray-900">rakuten</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Amazon Story */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-shrink-0 cursor-pointer group"
+              onClick={() => handleStoryClick(corporateStories[2])}
+            >
+              <div className="relative">
+                {/* Story Ring - Orange to Purple Gradient */}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-purple-500 p-0.5 mb-2">
+                  <div className="w-full h-full rounded-full bg-white p-1">
+                    <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-gray-300 font-bold text-xs">amazon</div>
+                        <div className="w-5 h-0.5 bg-orange-500 rounded-full mt-1 transform -rotate-6"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-gray-900">amazon</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CA Story */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-shrink-0 cursor-pointer group"
+              onClick={() => handleStoryClick(corporateStories[3])}
+            >
+              <div className="relative">
+                {/* Story Ring - Purple Gradient */}
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 p-0.5 mb-2">
+                  <div className="w-full h-full rounded-full bg-white p-1">
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 flex items-center justify-center">
+                      <div className="flex items-center">
+                        <div className="w-5 h-5 bg-lime-400 rounded-full flex items-center justify-center text-white font-bold text-xs">C</div>
+                        <div className="w-5 h-5 bg-green-700 rounded-full flex items-center justify-center text-white font-bold text-xs -ml-1">A</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-gray-900">ca_tech</p>
+                </div>
+                {/* Live Badge */}
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-6 h-3 bg-pink-500 rounded-sm flex items-center justify-center animate-pulse">
+                  <span className="text-white text-xs font-bold">LIVE</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Add Story Button */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-shrink-0 cursor-pointer group"
+            >
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gray-200 p-0.5 mb-2">
+                  <div className="w-full h-full rounded-full bg-white p-1">
+                    <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
+                      <div className="text-gray-400 text-xl">+</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-gray-500">追加</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Story Progress Indicators */}
+          <div className="flex justify-center space-x-1 mt-4">
+            <div className="w-8 h-1 bg-red-500 rounded-full"></div>
+            <div className="w-8 h-1 bg-gray-300 rounded-full"></div>
+            <div className="w-8 h-1 bg-gray-300 rounded-full"></div>
+            <div className="w-8 h-1 bg-gray-300 rounded-full"></div>
           </div>
         </motion.div>
 
         {/* Stats Cards */}
         <motion.div 
           variants={cardVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-4 gap-3"
         >
           {stats.map((stat, index) => (
             <motion.div
               key={stat.title}
-              whileHover={{ scale: 1.02, y: -5 }}
-              className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="bg-white rounded-lg p-4 shadow-md border border-gray-100"
             >
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center text-white text-xl`}>
+              <div className="text-center">
+                <div className={`w-8 h-8 rounded-lg ${stat.color} flex items-center justify-center text-white text-sm mx-auto mb-2`}>
                   {stat.icon}
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">{stat.title}</h3>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
+                <h3 className="text-xs font-medium text-gray-500 mb-1">{stat.title}</h3>
+                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
               </div>
             </motion.div>
           ))}
@@ -318,6 +652,14 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Corporate Story View */}
+      <CorporateStoryView
+        story={selectedStory}
+        isOpen={isStoryOpen}
+        onClose={handleCloseStory}
+        onStartQuiz={handleStartQuiz}
+      />
     </div>
   );
 } 

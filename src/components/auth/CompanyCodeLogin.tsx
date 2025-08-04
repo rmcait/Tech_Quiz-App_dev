@@ -62,9 +62,11 @@ export function CompanyCodeLogin() {
         setHideButton(true);
       }, 2500); // 1000ms (メッセージフェードアウト) + 200ms (遅延) + 1000ms (移動時間) + 300ms (待機時間)
       
-      // ボタンがフェードアウトした後にチェックマークを表示する
+      // ボタンがフェードアウトした後にチェックマークを表示し、Googleログインを実行する
       setTimeout(() => {
         setIsValid(true);
+        // 企業コード認証完了後、自動的にGoogleログインを実行
+        handleGoogleSignIn();
       }, 3000); // 2500ms (ボタンフェードアウト) + 500ms (遅延)
     } else {
       setButtonState('idle');
@@ -83,10 +85,8 @@ export function CompanyCodeLogin() {
     if (!isValid) return;
     
     try {
-      await signIn("google", { 
-        callbackUrl: "/dashboard",
-        state: companyCode // 企業コードをstateとして渡す
-      });
+      // 将来的にGoogleログインの実装を行うため、現在は直接ダッシュボードに遷移
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("ログインエラー:", error);
     }
