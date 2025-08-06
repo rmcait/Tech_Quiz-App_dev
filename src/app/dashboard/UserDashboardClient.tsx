@@ -22,6 +22,10 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [isStoryOpen, setIsStoryOpen] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<'all' | string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | '一般教養' | '専門'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | '普遍的' | 'トレンド'>('all');
+  const [expandedHistory, setExpandedHistory] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   // 企業ストーリーデータ
   const corporateStories = [
@@ -136,84 +140,177 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
       id: 1,
       category: "テクノロジー",
       genre: "AI・機械学習",
+      aiCategory: "専門" as const,
+      aiType: "トレンド" as const,
+      confidence: 0.95,
       date: "2024-01-15",
       time: "14:30",
+      score: 85,
       questions: [
         {
-          question: "機械学習における「過学習」とは何ですか？",
-          isCorrect: true,
-          userAnswer: "訓練データに対して過度に適合し、新しいデータに対する汎化性能が低下すること",
-          correctAnswer: "訓練データに対して過度に適合し、新しいデータに対する汎化性能が低下すること"
+          question: "機械学習における過学習とは何ですか？",
+          userAnswer: "モデルが訓練データに過度に適応すること",
+          correctAnswer: "モデルが訓練データに過度に適応すること",
+          isCorrect: true
         },
         {
-          question: "深層学習で使用される「ReLU」活性化関数の特徴は？",
-          isCorrect: false,
-          userAnswer: "入力値をそのまま出力する",
-          correctAnswer: "負の値を0にし、正の値はそのまま出力する"
+          question: "ディープラーニングで使用される活性化関数はどれですか？",
+          userAnswer: "ReLU",
+          correctAnswer: "ReLU",
+          isCorrect: true
         },
         {
-          question: "教師なし学習の代表的な手法はどれですか？",
-          isCorrect: true,
-          userAnswer: "クラスタリング",
-          correctAnswer: "クラスタリング"
+          question: "バックプロパゲーションの目的は何ですか？",
+          userAnswer: "重みの更新",
+          correctAnswer: "誤差の逆伝播による重みの最適化",
+          isCorrect: false
         }
-      ],
-      score: 67,
-      totalQuestions: 3
+      ]
     },
     {
       id: 2,
       category: "ビジネス",
       genre: "マーケティング",
+      aiCategory: "専門" as const,
+      aiType: "普遍的" as const,
+      confidence: 0.88,
       date: "2024-01-14",
       time: "10:15",
+      score: 92,
       questions: [
         {
-          question: "4Pマーケティングミックスに含まれないのはどれですか？",
-          isCorrect: true,
+          question: "4Pマーケティングミックスに含まれないものはどれですか？",
           userAnswer: "People",
-          correctAnswer: "People"
+          correctAnswer: "People",
+          isCorrect: true
         },
         {
-          question: "顧客生涯価値（LTV）を向上させる主な方法は？",
-          isCorrect: false,
-          userAnswer: "新規顧客の獲得",
-          correctAnswer: "既存顧客の維持と単価向上"
+          question: "ブランドエクイティとは何ですか？",
+          userAnswer: "ブランドの資産価値",
+          correctAnswer: "ブランドの資産価値",
+          isCorrect: true
         }
-      ],
-      score: 50,
-      totalQuestions: 2
+      ]
     },
     {
       id: 3,
-      category: "ヒューマンスキル",
-      genre: "コミュニケーション",
+      category: "社会・文化",
+      genre: "時事問題",
+      aiCategory: "一般教養" as const,
+      aiType: "トレンド" as const,
+      confidence: 0.92,
       date: "2024-01-13",
       time: "16:45",
+      score: 78,
       questions: [
         {
-          question: "効果的な傾聴の基本原則として正しいのは？",
-          isCorrect: true,
-          userAnswer: "相手の話を最後まで聞き、理解を示す",
-          correctAnswer: "相手の話を最後まで聞き、理解を示す"
+          question: "2024年の主要な国際会議はどれですか？",
+          userAnswer: "G7サミット",
+          correctAnswer: "G20サミット",
+          isCorrect: false
         },
         {
-          question: "非言語コミュニケーションが占める割合は約何％ですか？",
-          isCorrect: true,
-          userAnswer: "55%",
-          correctAnswer: "55%"
-        },
-        {
-          question: "フィードバックを行う際の重要なポイントは？",
-          isCorrect: false,
-          userAnswer: "問題点を厳しく指摘する",
-          correctAnswer: "具体的で建設的な内容にする"
+          question: "最近の環境政策で注目されているのは？",
+          userAnswer: "カーボンニュートラル",
+          correctAnswer: "カーボンニュートラル",
+          isCorrect: true
         }
-      ],
-      score: 67,
-      totalQuestions: 3
+      ]
+    },
+    {
+      id: 4,
+      category: "ヒューマンスキル",
+      genre: "コミュニケーション",
+      aiCategory: "一般教養" as const,
+      aiType: "普遍的" as const,
+      confidence: 0.91,
+      date: "2024-01-12",
+      time: "13:20",
+      score: 88,
+      questions: [
+        {
+          question: "効果的なプレゼンテーションの要素は？",
+          userAnswer: "明確な構成と視覚的資料",
+          correctAnswer: "明確な構成と視覚的資料",
+          isCorrect: true
+        },
+        {
+          question: "アクティブリスニングとは何ですか？",
+          userAnswer: "積極的に相手の話を聞くこと",
+          correctAnswer: "積極的に相手の話を聞くこと",
+          isCorrect: true
+        }
+      ]
+    },
+    {
+      id: 5,
+      category: "テクノロジー",
+      genre: "セキュリティ",
+      aiCategory: "専門" as const,
+      aiType: "トレンド" as const,
+      confidence: 0.89,
+      date: "2024-01-11",
+      time: "11:30",
+      score: 75,
+      questions: [
+        {
+          question: "ゼロトラストセキュリティの基本概念は？",
+          userAnswer: "すべてを信頼しない",
+          correctAnswer: "すべてを信頼しない",
+          isCorrect: true
+        },
+        {
+          question: "多要素認証で使用されるものは？",
+          userAnswer: "パスワードとSMS",
+          correctAnswer: "パスワード、生体認証、トークン",
+          isCorrect: false
+        }
+      ]
+    },
+    {
+      id: 6,
+      category: "社会・文化",
+      genre: "歴史",
+      aiCategory: "一般教養" as const,
+      aiType: "普遍的" as const,
+      confidence: 0.96,
+      date: "2024-01-10",
+      time: "15:10",
+      score: 94,
+      questions: [
+        {
+          question: "明治維新が起こった年は？",
+          userAnswer: "1868年",
+          correctAnswer: "1868年",
+          isCorrect: true
+        },
+        {
+          question: "江戸時代の身分制度の名称は？",
+          userAnswer: "士農工商",
+          correctAnswer: "士農工商",
+          isCorrect: true
+        }
+      ]
     }
   ];
+
+  // フィルタリングされた履歴データ
+  const filteredHistory = quizHistory.filter(history => {
+    const categoryMatch = historyFilter === 'all' || history.category === historyFilter;
+    const aiCategoryMatch = categoryFilter === 'all' || history.aiCategory === categoryFilter;
+    const aiTypeMatch = typeFilter === 'all' || history.aiType === typeFilter;
+    return categoryMatch && aiCategoryMatch && aiTypeMatch;
+  });
+
+  // AI分類の統計データ
+  const aiStats = {
+    total: quizHistory.length,
+    generalKnowledge: quizHistory.filter(h => h.aiCategory === '一般教養').length,
+    specialized: quizHistory.filter(h => h.aiCategory === '専門').length,
+    universal: quizHistory.filter(h => h.aiType === '普遍的').length,
+    trend: quizHistory.filter(h => h.aiType === 'トレンド').length,
+    averageConfidence: (quizHistory.reduce((sum, h) => sum + h.confidence, 0) / quizHistory.length * 100).toFixed(1)
+  };
 
   const availableQuizzes = [
     { 
@@ -638,111 +735,337 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
           </div>
         </motion.div>
 
-        {/* Quiz History */}
-        <motion.div 
+        {/* クイズ履歴セクション */}
+        <motion.div
           variants={cardVariants}
-          className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">📚 クイズ履歴</h2>
-            <span className="text-sm text-gray-500">{quizHistory.length}件の履歴</span>
+          {/* ヘッダー - モバイル最適化 */}
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-white">📚 クイズ履歴</h2>
+                <p className="text-blue-100 text-sm mt-1">AIが自動分類した学習履歴</p>
+              </div>
+              <div className="text-right">
+                <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+                  <span className="text-white text-sm font-medium">AI分析済み</span>
+                </div>
+                <div className="text-blue-100 text-xs mt-1">
+                  信頼度: {aiStats.averageConfidence}%
+                </div>
+              </div>
+            </div>
           </div>
-          
-          {/* Filter Tabs */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <button
-              onClick={() => setHistoryFilter('all')}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                historyFilter === 'all' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+
+          <div className="p-4 space-y-4">
+            {/* AI分類統計 - モバイル最適化 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 text-center">
+                <div className="text-2xl font-bold text-blue-600">{aiStats.generalKnowledge}</div>
+                <div className="text-xs text-blue-700 font-medium">一般教養</div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 text-center">
+                <div className="text-2xl font-bold text-purple-600">{aiStats.specialized}</div>
+                <div className="text-xs text-purple-700 font-medium">専門</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 text-center">
+                <div className="text-2xl font-bold text-green-600">{aiStats.universal}</div>
+                <div className="text-xs text-green-700 font-medium">普遍的</div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 text-center">
+                <div className="text-2xl font-bold text-orange-600">{aiStats.trend}</div>
+                <div className="text-xs text-orange-700 font-medium">トレンド</div>
+              </div>
+            </div>
+
+            {/* フィルター切り替えボタン */}
+            <motion.button
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full bg-gray-50 hover:bg-gray-100 rounded-xl p-4 flex items-center justify-between transition-colors"
+              whileTap={{ scale: 0.98 }}
             >
-              すべて
-            </button>
-            {Array.from(new Set(quizHistory.map(h => h.category))).map(category => (
-              <button
-                key={category}
-                onClick={() => setHistoryFilter(category)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  historyFilter === category 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <div className="font-medium text-gray-900">フィルター</div>
+                  <div className="text-xs text-gray-500">
+                    {filteredHistory.length}件 / {quizHistory.length}件
+                  </div>
+                </div>
+              </div>
+              <motion.div
+                animate={{ rotate: showFilters ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
               >
-                {category}
-              </button>
-            ))}
-          </div>
-          
-          <div className="space-y-4">
-            {quizHistory
-              .filter(history => historyFilter === 'all' || history.category === historyFilter)
-              .map((history, index) => (
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </motion.div>
+            </motion.button>
+
+            {/* フィルターパネル - アニメーション付き */}
+            <motion.div
+              initial={false}
+              animate={{ 
+                height: showFilters ? 'auto' : 0,
+                opacity: showFilters ? 1 : 0
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-4 pb-4">
+                {/* カテゴリフィルター - スクロール可能 */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">📂 カテゴリ</h3>
+                  <div className="flex space-x-2 overflow-x-auto pb-2">
+                    {['all', 'ビジネス', 'テクノロジー', '社会・文化', 'ヒューマンスキル'].map((filter) => (
+                      <motion.button
+                        key={filter}
+                        onClick={() => setHistoryFilter(filter)}
+                        whileTap={{ scale: 0.95 }}
+                        className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          historyFilter === filter
+                            ? 'bg-blue-500 text-white shadow-lg'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {filter === 'all' ? '🌟 すべて' : filter}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AI分類フィルター - 2列レイアウト */}
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">🧠 知識レベル</h4>
+                    <div className="flex space-x-2">
+                      {['all', '一般教養', '専門'].map((filter) => (
+                        <motion.button
+                          key={filter}
+                          onClick={() => setCategoryFilter(filter as any)}
+                          whileTap={{ scale: 0.95 }}
+                          className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                            categoryFilter === filter
+                              ? filter === '一般教養' 
+                                ? 'bg-blue-500 text-white' 
+                                : filter === '専門' 
+                                ? 'bg-purple-500 text-white' 
+                                : 'bg-gray-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {filter === 'all' ? 'すべて' : filter}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">⏰ 時代性</h4>
+                    <div className="flex space-x-2">
+                      {['all', '普遍的', 'トレンド'].map((filter) => (
+                        <motion.button
+                          key={filter}
+                          onClick={() => setTypeFilter(filter as any)}
+                          whileTap={{ scale: 0.95 }}
+                          className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                            typeFilter === filter
+                              ? filter === '普遍的' 
+                                ? 'bg-green-500 text-white' 
+                                : filter === 'トレンド' 
+                                ? 'bg-orange-500 text-white' 
+                                : 'bg-gray-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {filter === 'all' ? 'すべて' : filter}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* フィルターリセット */}
+                {(historyFilter !== 'all' || categoryFilter !== 'all' || typeFilter !== 'all') && (
+                  <motion.button
+                    onClick={() => {
+                      setHistoryFilter('all');
+                      setCategoryFilter('all');
+                      setTypeFilter('all');
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-xl text-sm font-medium transition-colors"
+                  >
+                    🔄 フィルターをリセット
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+
+            {/* クイズ履歴リスト - モバイル最適化 */}
+            <div className="space-y-3">
+              {filteredHistory.map((history, index) => (
                 <motion.div
                   key={history.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300"
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-gray-50 rounded-2xl overflow-hidden"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
+                  {/* カードヘッダー - タップ可能 */}
+                  <motion.button
+                    onClick={() => setExpandedHistory(expandedHistory === history.id ? null : history.id)}
+                    className="w-full p-4 text-left"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-900">{history.category}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600">{history.genre}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        history.score >= 80 ? 'bg-green-100 text-green-700' :
-                        history.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {history.score}%
-                      </div>
-                      <span className="text-xs text-gray-500">{history.date} {history.time}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {history.questions.map((q, qIndex) => (
-                      <div key={qIndex} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                          q.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                        }`}>
-                          {q.isCorrect ? '○' : '×'}
+                        <div className="text-lg">
+                          {history.category === 'テクノロジー' ? '🚀' : 
+                           history.category === 'ビジネス' ? '💼' :
+                           history.category === '社会・文化' ? '🌍' : '🤝'}
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900 mb-1">{q.question}</p>
-                          {!q.isCorrect && (
-                            <div className="text-xs space-y-1">
-                              <div className="text-red-600">
-                                <span className="font-medium">あなたの回答:</span> {q.userAnswer}
-                              </div>
-                              <div className="text-green-600">
-                                <span className="font-medium">正解:</span> {q.correctAnswer}
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">{history.category}</div>
+                          <div className="text-xs text-gray-600">{history.genre}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          history.score >= 80 ? 'bg-green-500 text-white' :
+                          history.score >= 60 ? 'bg-yellow-500 text-white' :
+                          'bg-red-500 text-white'
+                        }`}>
+                          {history.score}%
+                        </div>
+                        <motion.div
+                          animate={{ rotate: expandedHistory === history.id ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* AI分類バッジ */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          history.aiCategory === '一般教養' 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-purple-500 text-white'
+                        }`}>
+                          {history.aiCategory}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          history.aiType === '普遍的' 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-orange-500 text-white'
+                        }`}>
+                          {history.aiType}
+                        </span>
+                        <div className="flex items-center space-x-1 text-xs text-gray-500">
+                          <span>⭐</span>
+                          <span>{(history.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {history.date} {history.time}
+                      </div>
+                    </div>
+                  </motion.button>
+
+                  {/* 展開可能な詳細 */}
+                  <motion.div
+                    initial={false}
+                    animate={{ 
+                      height: expandedHistory === history.id ? 'auto' : 0,
+                      opacity: expandedHistory === history.id ? 1 : 0
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-4 pb-4 space-y-3">
+                      <div className="h-px bg-gray-200"></div>
+                      {history.questions.map((q, qIndex) => (
+                        <div key={qIndex} className="bg-white rounded-xl p-3">
+                          <div className="flex items-start space-x-3">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                              q.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                            }`}>
+                              {q.isCorrect ? '○' : '×'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 mb-2 leading-relaxed">{q.question}</p>
+                              <div className={`px-3 py-2 rounded-lg ${
+                                q.isCorrect 
+                                  ? 'bg-green-50 border border-green-200' 
+                                  : 'bg-red-50 border border-red-200'
+                              }`}>
+                                <div className={`text-xs font-medium ${
+                                  q.isCorrect ? 'text-green-700' : 'text-red-700'
+                                }`}>
+                                  {q.isCorrect ? '✅ 正解' : '❌ 不正解'}
+                                </div>
                               </div>
                             </div>
-                          )}
+                          </div>
                         </div>
+                      ))}
+                      
+                      {/* 復習アクションボタン */}
+                      <div className="flex space-x-2 pt-2">
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl text-sm font-medium transition-colors"
+                        >
+                          🔄 再挑戦
+                        </motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl text-sm font-medium transition-colors"
+                        >
+                          📚 類似問題
+                        </motion.button>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </motion.div>
                 </motion.div>
               ))}
-          </div>
-          
-          {quizHistory.filter(history => historyFilter === 'all' || history.category === historyFilter).length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">📝</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {historyFilter === 'all' ? 'まだクイズを解いていません' : `${historyFilter}のクイズ履歴がありません`}
-              </h3>
-              <p className="text-gray-600 mb-4">クイズに挑戦して知識を深めましょう！</p>
             </div>
-          )}
+
+            {/* 空の状態 - モバイル最適化 */}
+            {filteredHistory.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🤖</div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  該当する履歴がありません
+                </h3>
+                <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+                  フィルターを変更するか、<br />
+                  新しいクイズに挑戦してみましょう！
+                </p>
+                <motion.button
+                  onClick={() => {
+                    setHistoryFilter('all');
+                    setCategoryFilter('all');
+                    setTypeFilter('all');
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+                >
+                  🔄 フィルターをリセット
+                </motion.button>
+              </div>
+            )}
+          </div>
         </motion.div>
 
         {/* Corporate Story View */}
