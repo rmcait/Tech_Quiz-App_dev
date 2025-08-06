@@ -21,6 +21,7 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
   const isAlphaOmega = user.isAlphaOmega;
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [isStoryOpen, setIsStoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<'all' | string>('all');
 
   // 企業ストーリーデータ
   const corporateStories = [
@@ -129,45 +130,132 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
     calculation: streakData.currentStreak % 7
   });
 
-  const recentActivities = [
-    { action: "ビジネス技術クイズを完了", score: "90%", time: "2時間前", icon: "✅" },
-    { action: "プロジェクトマネジメントクイズを完了", score: "85%", time: "1日前", icon: "📋" },
-    { action: "DevOps基礎クイズを完了", score: "80%", time: "3日前", icon: "⚙️" },
+  // クイズ履歴のダミーデータ
+  const quizHistory = [
+    {
+      id: 1,
+      category: "テクノロジー",
+      genre: "AI・機械学習",
+      date: "2024-01-15",
+      time: "14:30",
+      questions: [
+        {
+          question: "機械学習における「過学習」とは何ですか？",
+          isCorrect: true,
+          userAnswer: "訓練データに対して過度に適合し、新しいデータに対する汎化性能が低下すること",
+          correctAnswer: "訓練データに対して過度に適合し、新しいデータに対する汎化性能が低下すること"
+        },
+        {
+          question: "深層学習で使用される「ReLU」活性化関数の特徴は？",
+          isCorrect: false,
+          userAnswer: "入力値をそのまま出力する",
+          correctAnswer: "負の値を0にし、正の値はそのまま出力する"
+        },
+        {
+          question: "教師なし学習の代表的な手法はどれですか？",
+          isCorrect: true,
+          userAnswer: "クラスタリング",
+          correctAnswer: "クラスタリング"
+        }
+      ],
+      score: 67,
+      totalQuestions: 3
+    },
+    {
+      id: 2,
+      category: "ビジネス",
+      genre: "マーケティング",
+      date: "2024-01-14",
+      time: "10:15",
+      questions: [
+        {
+          question: "4Pマーケティングミックスに含まれないのはどれですか？",
+          isCorrect: true,
+          userAnswer: "People",
+          correctAnswer: "People"
+        },
+        {
+          question: "顧客生涯価値（LTV）を向上させる主な方法は？",
+          isCorrect: false,
+          userAnswer: "新規顧客の獲得",
+          correctAnswer: "既存顧客の維持と単価向上"
+        }
+      ],
+      score: 50,
+      totalQuestions: 2
+    },
+    {
+      id: 3,
+      category: "ヒューマンスキル",
+      genre: "コミュニケーション",
+      date: "2024-01-13",
+      time: "16:45",
+      questions: [
+        {
+          question: "効果的な傾聴の基本原則として正しいのは？",
+          isCorrect: true,
+          userAnswer: "相手の話を最後まで聞き、理解を示す",
+          correctAnswer: "相手の話を最後まで聞き、理解を示す"
+        },
+        {
+          question: "非言語コミュニケーションが占める割合は約何％ですか？",
+          isCorrect: true,
+          userAnswer: "55%",
+          correctAnswer: "55%"
+        },
+        {
+          question: "フィードバックを行う際の重要なポイントは？",
+          isCorrect: false,
+          userAnswer: "問題点を厳しく指摘する",
+          correctAnswer: "具体的で建設的な内容にする"
+        }
+      ],
+      score: 67,
+      totalQuestions: 3
+    }
   ];
 
   const availableQuizzes = [
     { 
-      title: "ビジネス技術クイズ", 
-      description: "プロジェクトマネジメント、アジャイル開発、データベースなど",
-      questions: 10,
-      difficulty: "初級",
+      title: "ビジネス", 
+      description: "経営戦略、マーケティング、財務管理",
+      questions: 45,
+      difficulty: "中級",
       icon: "💼",
-      color: "from-blue-500 to-blue-600"
+      color: "from-blue-500 to-blue-600",
+      category: "ビジネス",
+      genres: ["戦略・企画", "マーケティング", "財務・会計", "プロジェクト管理", "営業・販売", "人事・労務"]
     },
     { 
-      title: "プロジェクトマネジメント", 
-      description: "PMBOK、アジャイル、スクラム、リスク管理など",
-      questions: 15,
-      difficulty: "中級",
-      icon: "📋",
-      color: "from-green-500 to-green-600"
-    },
-    { 
-      title: "DevOps基礎", 
-      description: "CI/CD、コンテナ、クラウド、セキュリティなど",
-      questions: 12,
-      difficulty: "中級",
-      icon: "⚙️",
-      color: "from-purple-500 to-purple-600"
-    },
-    { 
-      title: "データ分析入門", 
-      description: "統計、機械学習、データ可視化など",
-      questions: 8,
+      title: "社会・文化", 
+      description: "時事問題、歴史、文学、芸術",
+      questions: 38,
       difficulty: "初級",
-      icon: "📊",
-      color: "from-orange-500 to-orange-600"
+      icon: "🌍",
+      color: "from-green-500 to-green-600",
+      category: "社会・文化",
+      genres: ["時事問題", "歴史", "文学・芸術", "社会制度", "国際関係"]
     },
+    { 
+      title: "テクノロジー", 
+      description: "AI・ML、プログラミング、クラウド",
+      questions: 52,
+      difficulty: "上級",
+      icon: "🚀",
+      color: "from-purple-500 to-purple-600",
+      category: "テクノロジー",
+      genres: ["AI・機械学習", "プログラミング", "クラウド", "セキュリティ", "データベース", "ネットワーク", "Web開発"]
+    },
+    { 
+      title: "ヒューマンスキル", 
+      description: "コミュニケーション、リーダーシップ",
+      questions: 35,
+      difficulty: "中級",
+      icon: "🤝",
+      color: "from-orange-500 to-orange-600",
+      category: "ヒューマンスキル",
+      genres: ["コミュニケーション", "リーダーシップ", "チームワーク", "問題解決", "交渉術"]
+    }
   ];
 
   return (
@@ -480,186 +568,191 @@ export function UserDashboardClient({ user }: UserDashboardClientProps) {
           </div>
         </motion.div>
 
-        {/* Stats Cards */}
-        <motion.div 
-          variants={cardVariants}
-          className="grid grid-cols-4 gap-3"
-        >
-          {stats.map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              whileHover={{ scale: 1.02, y: -2 }}
-              className="bg-white rounded-lg p-4 shadow-md border border-gray-100"
-            >
-              <div className="text-center">
-                <div className={`w-8 h-8 rounded-lg ${stat.color} flex items-center justify-center text-white text-sm mx-auto mb-2`}>
-                  {stat.icon}
-                </div>
-                <h3 className="text-xs font-medium text-gray-500 mb-1">{stat.title}</h3>
-                <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-
         {/* Available Quizzes */}
         <motion.div 
           variants={cardVariants}
-          className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
+          className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">📚 利用可能なクイズ</h2>
-            <span className="text-sm text-gray-500">スキルアップに挑戦しましょう</span>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">🎯 クイズカテゴリ</h2>
+            <p className="text-gray-600 text-sm mt-1">興味のあるカテゴリを選択してクイズに挑戦しよう</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 2×2 グリッドレイアウト */}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
             {availableQuizzes.map((quiz, index) => (
               <motion.div
                 key={quiz.title}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                whileHover={{ scale: 1.03, y: -3 }}
+                whileTap={{ scale: 0.97 }}
                 className="group cursor-pointer"
               >
-                <Link href="/quiz">
-                  <div className={`bg-gradient-to-r ${quiz.color} text-white rounded-xl p-6 shadow-lg transition-all duration-300 group-hover:shadow-xl`}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="text-3xl">{quiz.icon}</div>
-                      <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">
-                        {quiz.difficulty}
-                      </span>
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">{quiz.title}</h3>
-                    <p className="text-blue-100 text-sm mb-4">{quiz.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm opacity-90">{quiz.questions}問</span>
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        className="bg-white bg-opacity-20 px-4 py-2 rounded-lg text-sm font-medium"
-                      >
-                        開始する →
-                      </motion.div>
+                <Link href={`/quiz?category=${encodeURIComponent(quiz.category)}`}>
+                  <div className={`bg-gradient-to-br ${quiz.color} text-white rounded-xl p-3 md:p-6 shadow-lg transition-all duration-300 group-hover:shadow-xl border border-white/20 h-full aspect-square flex items-center justify-center`}>
+                    <div className="flex flex-col justify-center items-center text-center space-y-2 md:space-y-3">
+                      <h3 className="text-sm md:text-xl font-bold leading-tight px-1">{quiz.title}</h3>
+                      
+                      {/* ジャンル表示 */}
+                      <div className="flex flex-wrap gap-1 justify-center max-w-full">
+                        {quiz.genres.slice(0, 2).map((genre, idx) => (
+                          <span key={idx} className="text-xs bg-white/20 px-2 py-1 rounded-full whitespace-nowrap">
+                            {genre}
+                          </span>
+                        ))}
+                        {quiz.genres.length > 2 && (
+                          <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                            +{quiz.genres.length - 2}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>
               </motion.div>
             ))}
           </div>
+          
+          {/* カテゴリ統計 */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-xl md:text-2xl font-bold text-blue-600">4</div>
+                <div className="text-xs md:text-sm text-gray-600">カテゴリ</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl md:text-2xl font-bold text-green-600">23</div>
+                <div className="text-xs md:text-sm text-gray-600">ジャンル</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl md:text-2xl font-bold text-purple-600">200+</div>
+                <div className="text-xs md:text-sm text-gray-600">問題数</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl md:text-2xl font-bold text-orange-600">3</div>
+                <div className="text-xs md:text-sm text-gray-600">難易度</div>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Recent Activities & Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Activities */}
-          <motion.div 
-            variants={cardVariants}
-            className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
-          >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">📈 最近のアクティビティ</h2>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
+        {/* Quiz History */}
+        <motion.div 
+          variants={cardVariants}
+          className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">📚 クイズ履歴</h2>
+            <span className="text-sm text-gray-500">{quizHistory.length}件の履歴</span>
+          </div>
+          
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <button
+              onClick={() => setHistoryFilter('all')}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                historyFilter === 'all' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              すべて
+            </button>
+            {Array.from(new Set(quizHistory.map(h => h.category))).map(category => (
+              <button
+                key={category}
+                onClick={() => setHistoryFilter(category)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  historyFilter === category 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          
+          <div className="space-y-4">
+            {quizHistory
+              .filter(history => historyFilter === 'all' || history.category === historyFilter)
+              .map((history, index) => (
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                  className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg"
+                  key={history.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + index * 0.1 }}
+                  className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300"
                 >
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                    {activity.icon}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-900">{history.category}</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="text-sm text-gray-600">{history.genre}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        history.score >= 80 ? 'bg-green-100 text-green-700' :
+                        history.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {history.score}%
+                      </div>
+                      <span className="text-xs text-gray-500">{history.date} {history.time}</span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-sm text-gray-500">{activity.time}</p>
+                  
+                  <div className="space-y-2">
+                    {history.questions.map((q, qIndex) => (
+                      <div key={qIndex} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                          q.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                        }`}>
+                          {q.isCorrect ? '○' : '×'}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900 mb-1">{q.question}</p>
+                          {!q.isCorrect && (
+                            <div className="text-xs space-y-1">
+                              <div className="text-red-600">
+                                <span className="font-medium">あなたの回答:</span> {q.userAnswer}
+                              </div>
+                              <div className="text-green-600">
+                                <span className="font-medium">正解:</span> {q.correctAnswer}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-lg font-bold text-green-600">{activity.score}</span>
                 </motion.div>
               ))}
+          </div>
+          
+          {quizHistory.filter(history => historyFilter === 'all' || history.category === historyFilter).length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-4xl mb-4">📝</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {historyFilter === 'all' ? 'まだクイズを解いていません' : `${historyFilter}のクイズ履歴がありません`}
+              </h3>
+              <p className="text-gray-600 mb-4">クイズに挑戦して知識を深めましょう！</p>
             </div>
-          </motion.div>
+          )}
+        </motion.div>
 
-          {/* Quick Actions */}
-          <motion.div 
-            variants={cardVariants}
-            className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"
-          >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">⚡ クイックアクション</h2>
-            <div className="space-y-4">
-              <Link href="/quiz">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="p-4 border border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600 text-lg">🚀</span>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">クイズに挑戦</h3>
-                      <p className="text-sm text-gray-500">新しいクイズでスキルをテスト</p>
-                    </div>
-                  </div>
-                </motion.div>
-              </Link>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="p-4 border border-green-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 cursor-pointer"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span className="text-green-600 text-lg">📊</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">進捗を確認</h3>
-                    <p className="text-sm text-gray-500">学習の進捗と統計を見る</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="p-4 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 cursor-pointer"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <span className="text-purple-600 text-lg">🎯</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">目標設定</h3>
-                    <p className="text-sm text-gray-500">学習目標を設定・管理</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="p-4 border border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 cursor-pointer"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <span className="text-orange-600 text-lg">🏆</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">実績を見る</h3>
-                    <p className="text-sm text-gray-500">獲得したバッジと実績</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
+        {/* Corporate Story View */}
+        <CorporateStoryView
+          story={selectedStory}
+          isOpen={isStoryOpen}
+          onClose={handleCloseStory}
+          onStartQuiz={handleStartQuiz}
+        />
       </motion.div>
-
-      {/* Corporate Story View */}
-      <CorporateStoryView
-        story={selectedStory}
-        isOpen={isStoryOpen}
-        onClose={handleCloseStory}
-        onStartQuiz={handleStartQuiz}
-      />
     </div>
   );
 } 

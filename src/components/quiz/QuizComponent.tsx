@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface QuizQuestion {
@@ -17,33 +17,146 @@ interface QuizResult {
   correctAnswers: number[];
   wrongAnswers: number[];
   timeSpent: number;
+  answers: {
+    questionId: number;
+    selectedAnswer: number;
+    isCorrect: boolean;
+    timeSpent: number;
+  }[];
 }
 
 interface QuizComponentProps {
   questions: QuizQuestion[];
   onComplete: (result: QuizResult) => void;
+  onTimerUpdate?: (timeLeft: number, showCountdown: boolean) => void;
 }
 
-export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
+export function QuizComponent({ questions, onComplete, onTimerUpdate }: QuizComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const [questionStartTimes, setQuestionStartTimes] = useState<number[]>([]);
+  const [questionAnswerTimes, setQuestionAnswerTimes] = useState<number[]>([]);
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [isAnswered, setIsAnswered] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(10); // 10秒のタイマー
+  const [showCountdown, setShowCountdown] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   useEffect(() => {
     setStartTime(Date.now());
-  }, []);
+    const initialTimes = new Array(questions.length).fill(0);
+    setQuestionStartTimes(initialTimes);
+    setQuestionAnswerTimes(initialTimes);
+    // 最初の問題の開始時間を記録
+    const newStartTimes = [...initialTimes];
+    newStartTimes[0] = Date.now();
+    setQuestionStartTimes(newStartTimes);
+  }, [questions.length]);
+
+  // タイマーの初期化と開始
+  useEffect(() => {
+    if (isAnswered) return;
+
+    setTimeLeft(10);
+    setShowCountdown(false);
+
+    // 問題開始時間を記録
+    if (currentQuestionIndex > 0) {
+      const newStartTimes = [...questionStartTimes];
+      newStartTimes[currentQuestionIndex] = Date.now();
+      setQuestionStartTimes(newStartTimes);
+    }
+
+    // 5秒後にカウントダウン表示開始
+    const countdownTimer = setTimeout(() => {
+      setShowCountdown(true);
+    }, 5000);
+
+    // 1秒ごとにタイマー更新
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          // タイムアウト処理
+          handleTimeout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    timerRef.current = timer;
+    countdownRef.current = countdownTimer;
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (countdownRef.current) clearTimeout(countdownRef.current);
+    };
+  }, [currentQuestionIndex, isAnswered]);
+
+  useEffect(() => {
+    if (onTimerUpdate) {
+      onTimerUpdate(timeLeft, showCountdown);
+    }
+  }, [timeLeft, showCountdown, onTimerUpdate]);
+
+  // タイムアウト処理
+  const handleTimeout = () => {
+    if (isAnswered) return;
+
+    const answerTime = Date.now();
+    const timeSpentOnQuestion = Math.round((answerTime - questionStartTimes[currentQuestionIndex]) / 1000);
+
+    const newAnswers = [...selectedAnswers];
+    newAnswers[currentQuestionIndex] = -1; // -1 = タイムアウト（不正解）
+    setSelectedAnswers(newAnswers);
+
+    const newAnswerTimes = [...questionAnswerTimes];
+    newAnswerTimes[currentQuestionIndex] = timeSpentOnQuestion;
+    setQuestionAnswerTimes(newAnswerTimes);
+
+    setIsAnswered(true);
+    setShowCountdown(false);
+
+    // タイマーをクリア
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (countdownRef.current) clearTimeout(countdownRef.current);
+
+    // 1.5秒後に次の問題へ
+    setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setIsAnswered(false);
+      } else {
+        // クイズ完了
+        completeQuiz(newAnswers, newAnswerTimes);
+      }
+    }, 1500);
+  };
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (isAnswered) return;
 
+    const answerTime = Date.now();
+    const timeSpentOnQuestion = Math.round((answerTime - questionStartTimes[currentQuestionIndex]) / 1000);
+
+    // タイマーをクリア
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (countdownRef.current) clearTimeout(countdownRef.current);
+
     const newAnswers = [...selectedAnswers];
     newAnswers[currentQuestionIndex] = answerIndex;
     setSelectedAnswers(newAnswers);
+
+    const newAnswerTimes = [...questionAnswerTimes];
+    newAnswerTimes[currentQuestionIndex] = timeSpentOnQuestion;
+    setQuestionAnswerTimes(newAnswerTimes);
+
     setIsAnswered(true);
+    setShowCountdown(false);
 
     // 少し待ってから次の問題へ
     setTimeout(() => {
@@ -52,25 +165,41 @@ export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
         setIsAnswered(false);
       } else {
         // クイズ完了
-        const timeSpent = Date.now() - startTime;
-        const correctAnswers = newAnswers
-          .map((answer, index) => answer === questions[index].correctAnswer ? index : -1)
-          .filter(index => index !== -1);
-        const wrongAnswers = newAnswers
-          .map((answer, index) => answer !== questions[index].correctAnswer ? index : -1)
-          .filter(index => index !== -1);
-
-        const result: QuizResult = {
-          score: (correctAnswers.length / questions.length) * 100,
-          totalQuestions: questions.length,
-          correctAnswers,
-          wrongAnswers,
-          timeSpent
-        };
-
-        onComplete(result);
+        completeQuiz(newAnswers, newAnswerTimes);
       }
     }, 1500);
+  };
+
+  const completeQuiz = (answers: number[], answerTimes: number[]) => {
+    const timeSpent = Date.now() - startTime;
+    const correctAnswers = answers
+      .map((answer, index) => ({ answer, index }))
+      .filter(({ answer, index }) => answer === questions[index].correctAnswer)
+      .map(({ index }) => index);
+    
+    const wrongAnswers = answers
+      .map((answer, index) => ({ answer, index }))
+      .filter(({ answer, index }) => answer !== questions[index].correctAnswer)
+      .map(({ index }) => index);
+
+    // 新しい答えの形式を作成
+    const detailedAnswers = answers.map((selectedAnswer, index) => ({
+      questionId: questions[index].id,
+      selectedAnswer: selectedAnswer,
+      isCorrect: selectedAnswer === questions[index].correctAnswer,
+      timeSpent: answerTimes[index] || 10 // デフォルトは10秒（タイムアウト）
+    }));
+
+    const result: QuizResult = {
+      score: correctAnswers.length,
+      totalQuestions: questions.length,
+      correctAnswers,
+      wrongAnswers,
+      timeSpent,
+      answers: detailedAnswers
+    };
+
+    onComplete(result);
   };
 
   const isCorrect = (answerIndex: number) => {
@@ -81,10 +210,14 @@ export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
     return selectedAnswers[currentQuestionIndex] === answerIndex;
   };
 
+  const isTimedOut = () => {
+    return selectedAnswers[currentQuestionIndex] === -1;
+  };
+
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       {/* Progress Bar */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-700">
             問題 {currentQuestionIndex + 1} / {questions.length}
@@ -100,6 +233,19 @@ export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
           />
+        </div>
+      </div>
+
+      {/* Timer */}
+      <div className="text-center mb-6">
+        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 ${
+          showCountdown && timeLeft <= 3 
+            ? "border-red-500 bg-red-50 text-red-700" 
+            : showCountdown 
+            ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+            : "border-gray-300 bg-gray-50 text-gray-700"
+        } font-bold text-xl transition-all duration-300`}>
+          {timeLeft}
         </div>
       </div>
 
@@ -129,6 +275,8 @@ export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
                       ? isCorrect(index)
                         ? "border-green-500 bg-green-50 text-green-800"
                         : "border-red-500 bg-red-50 text-red-800"
+                      : isCorrect(index) && !isTimedOut()
+                      ? "border-green-500 bg-green-50 text-green-800"
                       : "border-gray-200 bg-gray-50 text-gray-600"
                     : isSelected(index)
                     ? "border-blue-500 bg-blue-50 text-blue-800"
@@ -144,6 +292,8 @@ export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
                         ? isCorrect(index)
                           ? "border-green-500 bg-green-500 text-white"
                           : "border-red-500 bg-red-500 text-white"
+                        : isCorrect(index) && !isTimedOut()
+                        ? "border-green-500 bg-green-500 text-white"
                         : "border-gray-300 bg-gray-300 text-gray-600"
                       : isSelected(index)
                       ? "border-blue-500 bg-blue-500 text-white"
@@ -165,8 +315,14 @@ export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
               className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200"
             >
               <h3 className="font-semibold text-blue-900 mb-2">
-                {isCorrect(selectedAnswers[currentQuestionIndex]) ? "✅ 正解です！" : "❌ 不正解です"}
+                {isTimedOut() 
+                  ? "⏰ 時間切れです" 
+                  : isCorrect(selectedAnswers[currentQuestionIndex]) 
+                  ? "✅ 正解です！" 
+                  : "❌ 不正解です"
+                }
               </h3>
+              <p className="text-blue-800">{currentQuestion.explanation}</p>
             </motion.div>
           )}
         </motion.div>
@@ -188,4 +344,4 @@ export function QuizComponent({ questions, onComplete }: QuizComponentProps) {
       </div>
     </div>
   );
-} 
+}

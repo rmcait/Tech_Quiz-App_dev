@@ -23,9 +23,15 @@ interface QuizResultAnimationProps {
   result: QuizResult;
   questions: QuizQuestion[];
   onRetake: () => void;
+  onBackToCategories?: () => void;
+  categoryInfo?: {
+    category: string;
+    subCategory: string;
+    genre: string;
+  };
 }
 
-export function QuizResultAnimation({ result, questions, onRetake }: QuizResultAnimationProps) {
+export function QuizResultAnimation({ result, questions, onRetake, onBackToCategories, categoryInfo }: QuizResultAnimationProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showScore, setShowScore] = useState(false);
@@ -269,6 +275,26 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="max-w-6xl mx-auto px-4">
+        {/* ヘッダー - カテゴリ情報 */}
+        {categoryInfo && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-8"
+          >
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <p className="text-sm text-gray-500 mb-1">完了したクイズ</p>
+              <h2 className="text-xl font-bold text-gray-900">
+                {categoryInfo.genre}
+              </h2>
+              <p className="text-sm text-gray-600">
+                {categoryInfo.category} &gt; {categoryInfo.subCategory}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {/* メインスコア表示 */}
         <AnimatePresence>
           {showScore && (
@@ -464,6 +490,17 @@ export function QuizResultAnimation({ result, questions, onRetake }: QuizResultA
               >
                 🔄 もう一度挑戦する
               </motion.button>
+              
+              {onBackToCategories && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onBackToCategories}
+                  className="block mx-auto px-8 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+                >
+                  📚 他のカテゴリに挑戦
+                </motion.button>
+              )}
               
               <motion.button
                 whileHover={{ scale: 1.05 }}
