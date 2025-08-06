@@ -275,8 +275,6 @@ export function QuizComponent({ questions, onComplete, onTimerUpdate }: QuizComp
                       ? isCorrect(index)
                         ? "border-green-500 bg-green-50 text-green-800"
                         : "border-red-500 bg-red-50 text-red-800"
-                      : isCorrect(index) && !isTimedOut()
-                      ? "border-green-500 bg-green-50 text-green-800"
                       : "border-gray-200 bg-gray-50 text-gray-600"
                     : isSelected(index)
                     ? "border-blue-500 bg-blue-50 text-blue-800"
@@ -292,14 +290,16 @@ export function QuizComponent({ questions, onComplete, onTimerUpdate }: QuizComp
                         ? isCorrect(index)
                           ? "border-green-500 bg-green-500 text-white"
                           : "border-red-500 bg-red-500 text-white"
-                        : isCorrect(index) && !isTimedOut()
-                        ? "border-green-500 bg-green-500 text-white"
                         : "border-gray-300 bg-gray-300 text-gray-600"
                       : isSelected(index)
                       ? "border-blue-500 bg-blue-500 text-white"
                       : "border-gray-300 bg-white text-gray-600"
                   }`}>
-                    {String.fromCharCode(65 + index)}
+                    {isAnswered && isSelected(index) ? (
+                      isCorrect(index) ? "✓" : "✗"
+                    ) : (
+                      String.fromCharCode(65 + index)
+                    )}
                   </div>
                   <span className="font-medium">{option}</span>
                 </div>
@@ -322,7 +322,6 @@ export function QuizComponent({ questions, onComplete, onTimerUpdate }: QuizComp
                   : "❌ 不正解です"
                 }
               </h3>
-              <p className="text-blue-800">{currentQuestion.explanation}</p>
             </motion.div>
           )}
         </motion.div>
