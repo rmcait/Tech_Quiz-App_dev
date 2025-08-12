@@ -1,7 +1,7 @@
 'use client'
 
 import { signOut, useSession } from 'next-auth/react'
-import { GoogleSignInButton } from '../../../components/auth/GoogleSignInButton'
+import { CompanyCodeLogin } from '../../../components/auth/CompanyCodeLogin'
 
 export default function LoginPage() {
   const { data: session, status } = useSession()
@@ -44,52 +44,6 @@ export default function LoginPage() {
     )
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-            <svg className="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            アカウントにログイン
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            アプリケーションを使用するにはログインしてください
-          </p>
-        </div>
-        
-        <div className="bg-white py-8 px-6 shadow rounded-lg sm:px-10">
-          <div className="space-y-6">
-            <div>
-              <GoogleSignInButton />
-            </div>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  または
-                </span>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-xs text-gray-500">
-                ログインすることで、当社の
-                <a href="#" className="text-blue-600 hover:text-blue-500">利用規約</a>
-                と
-                <a href="#" className="text-blue-600 hover:text-blue-500">プライバシーポリシー</a>
-                に同意したことになります。
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  // セッションがない場合は企業コードログインコンポーネントを表示
+  return <CompanyCodeLogin />
 }

@@ -2,12 +2,11 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Header } from "../components/navigation/Header";
-import { CompanyCodeLogin } from "../components/auth/CompanyCodeLogin";
+import { Header } from "../../components/navigation/Header";
+import { UserDashboardClient } from "./UserDashboardClient";
 
-export default function HomePage() {
+export default function DashboardPage() {
   const { data: session, status } = useSession();
 
   if (status === 'loading') {
@@ -18,14 +17,21 @@ export default function HomePage() {
     );
   }
 
-  if (session) {
-    redirect("/dashboard");
-  }
+  // モック認証：セッションがない場合はモックユーザーを使用
+  const mockUser = {
+    name: "モックユーザー",
+    email: "mock@example.com",
+    image: null,
+    role: "STAFF",
+    isAlphaOmega: false
+  };
+
+  const user = session?.user || mockUser;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <CompanyCodeLogin />
+      <UserDashboardClient user={user} />
     </div>
   );
-}
+} 

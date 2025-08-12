@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -13,6 +13,10 @@
     "@prisma/client": "^6.13.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.2",
+    "framer-motion": "^12.23.12",
+    "gsap": "^3.13.0",
+    "lottie-react": "^2.4.1",
+    "motion": "^12.23.12",
     "next": "15.4.5",
     "next-auth": "^4.24.11",
     "prisma": "^6.13.0",
