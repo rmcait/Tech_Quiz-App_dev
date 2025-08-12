@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { AnimatePresence } from "framer-motion";
@@ -27,6 +27,15 @@ export function CompanyCodeLogin() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showMovingCheckmark, setShowMovingCheckmark] = useState(false);
   const [hideButton, setHideButton] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile to tune animation distance
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 640); // Tailwind sm breakpoint
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   const validateCompanyCode = async () => {
     if (!companyCode.trim()) {
@@ -236,7 +245,7 @@ export function CompanyCodeLogin() {
                 whileTap={{ scale: buttonState === 'idle' ? 0.98 : 1 }}
                 onClick={validateCompanyCode}
                 disabled={isValidating || !companyCode.trim()}
-                className={`w-full py-3 px-4 border border-transparent rounded-xl font-medium transition-all duration-300 ${
+                className={`w-full py-3 px-4 border border-transparent rounded-xl font-medium transition-all duration-300 overflow-hidden ${
                   buttonState === 'success'
                     ? "bg-green-500 text-white"
                     : isValidating || !companyCode.trim()
@@ -275,7 +284,7 @@ export function CompanyCodeLogin() {
                         initial={{ scale: 0 }}
                         animate={{ 
                           scale: 1,
-                          x: showMovingCheckmark ? "180px" : 0,
+                          x: showMovingCheckmark ? (isMobile ? 140 : 180) : 0,
                           rotate: showMovingCheckmark ? 1440 : 0
                         }}
                         transition={{ 
