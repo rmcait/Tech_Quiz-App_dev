@@ -301,7 +301,7 @@ export default function QuizPage() {
       result.answers.push({
         questionId: answer.questionId,
         selectedAnswer: answer.selectedAnswer,
-        isCorrect: question && question.correctAnswer === answer.selectedAnswer,
+        isCorrect: !!(question && question.correctAnswer === answer.selectedAnswer),
         timeSpent: 0,
       });
     });
