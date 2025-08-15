@@ -91,14 +91,14 @@ export function QuizResultAnimation({ result, questions, onRetake, onBackToCateg
         <motion.div
           key={i}
           initial={{ 
-            x: Math.random() * window.innerWidth,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
             y: -50,
             rotate: 0,
             opacity: 1
           }}
           animate={{ 
-            x: Math.random() * window.innerWidth,
-            y: window.innerHeight + 50,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
+            y: typeof window !== 'undefined' ? window.innerHeight + 50 : 800,
             rotate: 360,
             opacity: 0
           }}
@@ -125,12 +125,12 @@ export function QuizResultAnimation({ result, questions, onRetake, onBackToCateg
         <motion.div
           key={i}
           initial={{ 
-            x: Math.random() * window.innerWidth,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
             y: -20,
             opacity: 1
           }}
           animate={{ 
-            y: window.innerHeight + 20,
+            y: typeof window !== 'undefined' ? window.innerHeight + 20 : 800,
             opacity: 0
           }}
           transition={{ 
@@ -151,14 +151,14 @@ export function QuizResultAnimation({ result, questions, onRetake, onBackToCateg
         <motion.div
           key={i}
           initial={{ 
-            x: Math.random() * window.innerWidth,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
             y: -20,
             rotate: 0,
             opacity: 1
           }}
           animate={{ 
-            x: Math.random() * window.innerWidth,
-            y: window.innerHeight + 20,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
+            y: typeof window !== 'undefined' ? window.innerHeight + 20 : 800,
             rotate: 360,
             opacity: 0
           }}
@@ -180,13 +180,13 @@ export function QuizResultAnimation({ result, questions, onRetake, onBackToCateg
         <motion.div
           key={i}
           initial={{ 
-            x: Math.random() * window.innerWidth,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
             y: -20,
             scale: 0,
             opacity: 0
           }}
           animate={{ 
-            y: window.innerHeight + 20,
+            y: typeof window !== 'undefined' ? window.innerHeight + 20 : 800,
             scale: [0, 1, 0],
             opacity: [0, 1, 0]
           }}
@@ -212,13 +212,13 @@ export function QuizResultAnimation({ result, questions, onRetake, onBackToCateg
         <motion.div
           key={i}
           initial={{ 
-            x: Math.random() * window.innerWidth,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
             y: -20,
             rotate: 0,
             opacity: 1
           }}
           animate={{ 
-            y: window.innerHeight + 20,
+            y: typeof window !== 'undefined' ? window.innerHeight + 20 : 800,
             rotate: 360,
             opacity: 0
           }}
@@ -239,13 +239,13 @@ export function QuizResultAnimation({ result, questions, onRetake, onBackToCateg
         <motion.div
           key={`firework-${i}`}
           initial={{ 
-            x: Math.random() * window.innerWidth,
-            y: window.innerHeight,
+            x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : Math.random() * 400,
+            y: typeof window !== 'undefined' ? window.innerHeight : 800,
             scale: 0,
             opacity: 0
           }}
           animate={{ 
-            y: window.innerHeight * 0.3,
+            y: typeof window !== 'undefined' ? window.innerHeight * 0.3 : 240,
             scale: [0, 1, 0],
             opacity: [0, 1, 0]
           }}
